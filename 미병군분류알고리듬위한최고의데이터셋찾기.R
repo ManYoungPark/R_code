@@ -77,87 +77,87 @@ downFunc<-function()
   #mb_tmp2down<-downSample(subset(mb_tmp1,select=-미병분류fi),mb_tmp1$미병분류fi)
   #mb_tmp2<-downSample(subset(mb_tmp1,select=-미병분류fi),mb_tmp1$미병분류fi)
   mb_tmp2<-upSample(subset(mb_tmp1,select=-미병분류fi),mb_tmp1$미병분류fi)
-
- colnames(mb_tmp2)[75]<-"미병분류fi"
-#colnames(mb_tmp2down)[75]<-"미병분류fi"
-# 
-
-
-mb_tmp2_1<-select(mb_tmp2,-c(Apen:esi),-c(체질진단fi,미병점수fi,대상자_등록번호))
-mb_tmp0<-mb_tmp2_1
-
-
-#전체
-mb_tmp1_1<-mb_tmp0
-ltmp<-mb_tmp1_1
-
-ltmp.scale<-cbind(scale(ltmp[-c(62,63)]),ltmp[63])                  
-#summary(ltmp.scale)                
- 
-#inTrain=createDataPartition(ltmp.scale$미병분류fi, p=0.7, list=FALSE)
-
-
-rsltall<-list()
-rsltDT<-list()
-rsltSVM<-list()
-rsltNN<-list()
-
-
-rslttotal <- data.frame(names= character(), times=numeric(), 
-                       Sensitivityss= numeric(),Specificity=numeric(),PPV= numeric(), NPV= numeric(),accurary=numeric(),stringsAsFactors=FALSE)
-for(i in 1:100)
-{
   
-
-#데이터셋 분류 
-#inTrain=createDataPartition(ltmp$미병분류fi, p=0.7, list=FALSE)
+  colnames(mb_tmp2)[75]<-"미병분류fi"
+  #colnames(mb_tmp2down)[75]<-"미병분류fi"
+  # 
   
-inTrain=createDataPartition(ltmp.scale$미병분류fi, p=0.7, list=FALSE)
-traindata=ltmp.scale[inTrain,]
-testdata=ltmp.scale[-inTrain,]
-
-myformula<-미병분류fi~.
-
-
-#roc커브를 그리기 위해 probability =TRUE로 해줘야함.
-#sm<-svm(myformula, data = traindata, cost = 100, gamma = 2)
-
-#cost와 gamma값에 따라 다름.
-sm<-svm(myformula, data = traindata, cost=4, gamma=0.0625, probability = TRUE)
-#sm<-svm(myformula, data = traindata, cost=100, gamma=2, probability = TRUE)
-
-
-sm.predicted_test <-predict(sm,newdata=testdata, type="class")
-sm.predicted_test_prob <-predict(sm,newdata=testdata,type="prob", probability = TRUE)
-
-(rstCM_svm<-confusionMatrix(sm.predicted_test,testdata$미병분류fi))
-
-# svm
-x.svm.prob.rocr <- prediction(attr(sm.predicted_test_prob, "probabilities")[,2], testdata$미병분류fi)
-x.svm.perf <- performance(x.svm.prob.rocr, "tpr","fpr")
-
-rsltSVM[[i]]<-list(sm=sm,predicted_test_prob=sm.predicted_test_prob,confusionMatrix=rstCM_svm,ROC_pred=x.svm.prob.rocr,ROC_PERFORMACE=x.svm.perf)
-
-#confusionMatrix 중 결과 vector를 value 변수에 저장
-values<-rstCM_svm$byClass
-rslttotal<-rbind(rslttotal,data.frame(names="SVM" , times=i, 
-                                      Sensitivityss= values["Sensitivity"],Specificity=values["Specificity"],PPV= values["Pos Pred Value"],
-                                      NPV= values["Neg Pred Value"],accurary= values["Balanced Accuracy"],row.names=NULL))
-
-
-
-}
-
-
-
-
-(tp2<-mean(filter(rslttotal,names=="SVM")$accurary))
-
-summary(filter(rslttotal,names=="SVM"))
-summary(filter(rslttotal,names=="ANN"))
-summary(filter(rslttotal,names=="CART"))
-
-return (list(svmMean=tp2,dt=ltmp))
+  
+  mb_tmp2_1<-select(mb_tmp2,-c(Apen:esi),-c(체질진단fi,미병점수fi,대상자_등록번호))
+  mb_tmp0<-mb_tmp2_1
+  
+  
+  #전체
+  mb_tmp1_1<-mb_tmp0
+  ltmp<-mb_tmp1_1
+  
+  ltmp.scale<-cbind(scale(ltmp[-c(62,63)]),ltmp[63])                  
+  #summary(ltmp.scale)                
+  
+  #inTrain=createDataPartition(ltmp.scale$미병분류fi, p=0.7, list=FALSE)
+  
+  
+  rsltall<-list()
+  rsltDT<-list()
+  rsltSVM<-list()
+  rsltNN<-list()
+  
+  
+  rslttotal <- data.frame(names= character(), times=numeric(), 
+                          Sensitivityss= numeric(),Specificity=numeric(),PPV= numeric(), NPV= numeric(),accurary=numeric(),stringsAsFactors=FALSE)
+  for(i in 1:100)
+  {
+    
+    
+    #데이터셋 분류 
+    #inTrain=createDataPartition(ltmp$미병분류fi, p=0.7, list=FALSE)
+    
+    inTrain=createDataPartition(ltmp.scale$미병분류fi, p=0.7, list=FALSE)
+    traindata=ltmp.scale[inTrain,]
+    testdata=ltmp.scale[-inTrain,]
+    
+    myformula<-미병분류fi~.
+    
+    
+    #roc커브를 그리기 위해 probability =TRUE로 해줘야함.
+    #sm<-svm(myformula, data = traindata, cost = 100, gamma = 2)
+    
+    #cost와 gamma값에 따라 다름.
+    sm<-svm(myformula, data = traindata, cost=4, gamma=0.0625, probability = TRUE)
+    #sm<-svm(myformula, data = traindata, cost=100, gamma=2, probability = TRUE)
+    
+    
+    sm.predicted_test <-predict(sm,newdata=testdata, type="class")
+    sm.predicted_test_prob <-predict(sm,newdata=testdata,type="prob", probability = TRUE)
+    
+    (rstCM_svm<-confusionMatrix(sm.predicted_test,testdata$미병분류fi))
+    
+    # svm
+    x.svm.prob.rocr <- prediction(attr(sm.predicted_test_prob, "probabilities")[,2], testdata$미병분류fi)
+    x.svm.perf <- performance(x.svm.prob.rocr, "tpr","fpr")
+    
+    rsltSVM[[i]]<-list(sm=sm,predicted_test_prob=sm.predicted_test_prob,confusionMatrix=rstCM_svm,ROC_pred=x.svm.prob.rocr,ROC_PERFORMACE=x.svm.perf)
+    
+    #confusionMatrix 중 결과 vector를 value 변수에 저장
+    values<-rstCM_svm$byClass
+    rslttotal<-rbind(rslttotal,data.frame(names="SVM" , times=i, 
+                                          Sensitivityss= values["Sensitivity"],Specificity=values["Specificity"],PPV= values["Pos Pred Value"],
+                                          NPV= values["Neg Pred Value"],accurary= values["Balanced Accuracy"],row.names=NULL))
+    
+    
+    
+  }
+  
+  
+  
+  
+  (tp2<-mean(filter(rslttotal,names=="SVM")$accurary))
+  
+  summary(filter(rslttotal,names=="SVM"))
+  summary(filter(rslttotal,names=="ANN"))
+  summary(filter(rslttotal,names=="CART"))
+  
+  return (list(svmMean=tp2,dt=ltmp))
 
 }
 
