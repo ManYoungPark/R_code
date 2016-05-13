@@ -33,3 +33,59 @@ mb_tmp2_1<-mb_tmp2[!colSums(is.na(mb_tmp2))>100]
 #rename은 plyr에도 있고, dplyr에도 있다. 에러가 날때는 둘중 하나를 detach(패키지 이름) 시켜야한다.
 detach("package:dplyr", unload=TRUE)
 
+
+
+
+
+
+# 변수명 일괄 변경하기 -------------------------------------------------------------
+
+sample1 <- data.frame(A = 1:10, B = letters[1:10])
+sample2 <- data.frame(B = 11:20, C = letters[11:20])
+
+rename_map <- c(A = "var1", B = "var2", C = "var3")
+
+names(sample1) <- rename_map[names(sample1)]
+str(sample1)
+
+names(sample2) <- rename_map[names(sample2)]
+str(sample2)
+
+oldnames <- unique(c(names(sample1), names(sample2)))
+newnames <- c("var1n", "var2n", "var3n")
+name_df <- data.frame(oldnames, newnames)
+mydata <- list(sample1, sample2)  # combined two datasets as a list
+# one liner
+pmyfn <- function(i) {
+  colnames(i) <- name_df[name_df[, 1] %in% colnames(i), 2]
+  return(i)
+}
+
+finaldata <- lapply(mydata, pmyfn)
+
+finaldata2 <- lapply(mydata, function(i) {
+  colnames(i) <- name_df[name_df[, 1] %in% colnames(i), 2]
+  i$tmp <- "999"
+  return(i)
+})
+
+pmyfn(mydata[[1]])
+
+pmyfn2<-function(x)
+{
+  
+  for(i in 1:10)
+  {
+  
+    tmp<-data.frame(a=1,b=i,c="abc")  
+    tmp<-rbind(tmp,tmp)
+  }
+  
+  return(tmp) 
+}
+
+
+rsl222<-lapply(mydata,pmyfn2)
+rsl222<-sapply(mydata,pmyfn2)
+
+

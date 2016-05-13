@@ -176,6 +176,10 @@ group by mi그룹
 
 
 
-
-
 select * from [dbo].[인바디분석자료0429]
+select * from [dbo].[인바디변수매핑][dbo].[인바디변수매핑]
+select * from [dbo].맥변수명mapping
+select * from [dbo].[HRV분석자료0429]
+
+update HRV분석자료0429 set Gender=1 where Gender='Male'
+update HRV분석자료0429 set Gender=2 where Gender='Female'

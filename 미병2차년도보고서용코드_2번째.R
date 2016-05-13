@@ -1,11 +1,12 @@
 
 names(mb_tmp_data_tmp2_1)
+mb_tmp_data_tmp2_1
 
-mb_tmp_data_tmp2_2<-select(mb_tmp_data_tmp2_1,matches("a[0-9]"),Gender,미병그룹recode)
+mb_tmp_data_tmp2_2<-select(mb_tmp_data_tmp2_1,matches("a[0-9]"),matches("k[0-9]"),Gender,미병그룹recode)
 mb_tmp_data_tmp2_2$Gender<-factor(mb_tmp_data_tmp2_2$Gender)
 
-mb_tmp_data_tmp2_2.male<-filter(mb_tmp_data_tmp2_2,Gender==1)
-mb_tmp_data_tmp2_2.female<-filter(mb_tmp_data_tmp2_2,Gender==2)
+mb_tmp_data_tmp2_2.male<-filter(mb_tmp_data_tmp2_2,Gender=="male")
+mb_tmp_data_tmp2_2.female<-filter(mb_tmp_data_tmp2_2,Gender=="female")
 
 mb_tmp_data_tmp3<-mb_tmp_data_tmp2_2 #전체
 mb_tmp_data_tmp3<-mb_tmp_data_tmp2_2.male #남자
@@ -37,10 +38,14 @@ for(i in 1:(ncol(mb_tmp_data_tmp3)-2))
   df_sub_up<-rbind(df_sub_up,tbtmp)
 }
 
+df_sub_sum<-rbind(df_sub_up,df_sub)
 df_sub_sum_male<-rbind(df_sub_up,df_sub)
 df_sub_sum_female<-rbind(df_sub_up,df_sub)
+
 df_sub_sum$Gender<-"total"
+df_sub_sum_male$Gender<-"male"
 df_sub_sum_female$Gender<-"Female"
+
 
 
 df_sub_sum<-rbind(df_sub_sum,df_sub_sum_female,df_sub_sum_male)
@@ -54,15 +59,21 @@ df_sub_sum[df_sub_sum==0]<-1
 df_sub_sum$multiple<-df_sub_sum$Mibyeong/(df_sub_sum$Healthy*4)
 
 df_sub_fullNm<-sqldf("select * from df_sub_sum a inner join mappingVR b on a.variable=b.shortName")
-write.csv(df_sub_fullNm,"outof_95.csv")
+write.csv(df_sub_fullNm,"Mac_outof_95.csv")
+
+write.csv(df_sub_sum,"HRV_outof_95.csv")
+
+#hrv
 
 
 
 library(plyr)
+names(df_sub_sum)
 
 
-ggplot(df_sub_fullNm,aes(x=reorder(fullName,multiple),y=multiple,fill=Gender))+geom_bar(stat="identity")+
+ggplot(df_sub_sum,aes(x=reorder(variable,multiple),y=multiple,fill=Gender))+geom_bar(stat="identity")+
   facet_grid(flag~.)+
+  #facet_wrap(flag~.)+
   scale_fill_brewer(palette="Paired") + theme_minimal()+
   theme_classic()+
   theme_bw() +labs(y="", x="")+theme(axis.text.x = element_text(angle = 60, hjust = 1))
