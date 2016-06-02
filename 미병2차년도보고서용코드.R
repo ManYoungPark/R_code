@@ -23,6 +23,7 @@ library(ggplot2)
 conn<-odbcConnect('mibyeong_2016',uid='sa',pwd='leo0515')
 
 mb_tmp_data=sqlQuery(conn,"select * from 인바디분석자료0429")
+mb_tmp_data=sqlQuery(conn,"select * from 계측분석자료_my")
 
 setwd("D:/KIOM/프로젝트문서들/미래부_수면박탈_미병/데이터/2016데이터")
 
@@ -30,8 +31,20 @@ names(mb_tmp_data)
 # 데이터가 1/3 이상 없는 데이터 컬럼 제거 ------------------------------------------------
 
 
+
+
 #NA값이 40개 이상인거 제거
 mb_tmp_data<-mb_tmp_data[!colSums(is.na(mb_tmp_data))>40]
+names(mb_tmp_data)[names(mb_tmp_data) %in% "성별"]<-"Gender"
+mb_tmp_data$Gender<-factor(mb_tmp_data$Gender,levels=c(1,2),labels=c("male","female"))
+mb_tmp_data$Gender=="female"
+head(mb_tmp_data)
+str(mb_tmp_data)
+
+
+
+
+
 
 # 건강군 모든 변수 95%구간 구하기. --------------------------------------------------
 
@@ -42,8 +55,15 @@ mb_tmp_data.group1<-subset(mb_tmp_data,미병버전==1 & 미병그룹==1)
 #nms.inbodyVR<-grep("^a",nms,value=TRUE)
 
 names(mb_tmp_data.group1)
+names(tmpdata)
 #inbody
 tmpdata<-mb_tmp_data.group1[,c(14,17:ncol(mb_tmp_data.group1))]
+#계측
+
+tmpdata<-mb_tmp_data.group1[,c(10,15:20)]
+names(tmpdata)[1]<-"Gender"
+
+
 #mac
 tmpdata<-select(mb_tmp_data.group1,matches("^a[0-9]+"),Gender)
 #hrv
@@ -73,8 +93,11 @@ names(tmpdata)
 
 tmpdata$Gender=factor(tmpdata$Gender)
 tmpdata_male<-tmpdata[tmpdata$Gender=='male',]
+tmpdata_male<-tmpdata[tmpdata$Gender=='1',]
 tmpdata_female<-tmpdata[tmpdata$Gender=='female',]
+tmpdata_female<-tmpdata[tmpdata$Gender=='2',]
 
+summary(tmpdata)
 summary(tmpdata_male)
 summary(tmpdata_female)
 
@@ -96,6 +119,9 @@ names(normal95woman)<-paste0(names(normal95woman),"_female")
 normal95totalbind<-cbind(normal95total,normal95man,normal95woman)
 
 names(normal95totalbind)
+head(normal95totalbind)
+
+
 
 
 library(sqldf)
@@ -113,15 +139,81 @@ normal95totalbind_fullNm2<-select(normal95totalbind_fullNm,vnames,matches(".95")
 #end of hrv part
 
 normal95totalbind_fullNm<-sqldf("select * from normal95totalbind a inner join mappingVR b on a.vnames=b.shortName")
-normal95totalbind_fullNm2<-select(normal95totalbind_fullNm,fullName,matches(".95"),-matches("^conf"))
+normal95totalbind_fullNm2<-select(normal95totalbind_fullNm,fullName,matches(".95|avg"),-matches("^conf"))
 
 
 write.csv(normal95totalbind_fullNm2,"normal95totalbind_fullNm2.csv")
 write.csv(normal95totalbind_fullNm2,"normal95totalbind_fullNm2Mac.csv")
 write.csv(normal95totalbind_fullNm2,"normal95totalbind_fullNm2HRV.csv")
+write.csv(normal95totalbind,"normal95totalbind_fullNm2계측.csv")
+
 inbody95p_range<-normal95totalbind_fullNm2
+
 mac95p_range<-normal95totalbind_fullNm2
 HRV95p_range<-normal95totalbind_fullNm2
+
+save(inbody95p_range,file="inbody95p_range.RData")
+save(normal95totalbind,file="계측95p_range.RData")
+load(file="inbody95p_range.RData")
+getwd()
+
+inbody95p_range<-normal95totalbind
+names(inbody95p_range)
+#그래프 그리기.
+row.names(inbody95p_range)<-inbody95p_range[,1]
+tmp0<-inbody95p_range[,c(4,2,3)]
+#tmp1<-inbody95p_range[,c(7,5,6)]
+tmp1<-inbody95p_range[,c(10,8,9)]
+tmp2<-inbody95p_range[,c(16,14,15)]
+
+names(tmp0)<-c("avg","lw95","up95")
+names(tmp1)<-c("avg","lw95","up95")
+names(tmp2)<-c("avg","lw95","up95")
+
+
+tmp1
+
+tmp1
+
+row.names(tmp1) <-paste0(row.names(inbody95p_range)," for male")
+row.names(tmp2) <-paste0(row.names(inbody95p_range)," for female")
+
+tmp<-list()
+for(i in 1:nrow(tmp0))
+{
+  tt<-rbind(tmp0[i,],tmp1[i,],tmp2[i,])  
+  tt$fc<-row.names(tt)
+  tmp[[i]]<-tt
+  
+}
+ 
+NROW(tmp)
+length(tmp)
+
+
+#g1<-
+ggplot(tmp[[1]],aes(x=fc,y=avg,group=fc,color=fc))+geom_point(colour="red",size=2)+geom_errorbar(aes(ymin=lw95,ymax=up95),width=.1)+
+  theme(axis.text=element_text(face="bold", colour = "black"))+    guides(fill=FALSE)+coord_flip()+xlab("")+ylab("")
+
+
+
+for(i in 1:NROW(tmp))
+{
+  assign(paste0("g",i),ggplot(tmp[[i]],aes(x=fc,y=avg,color=fc))+geom_point(colour="red",size=2,show_guide=FALSE)+
+           geom_errorbar(aes(ymin=lw95,ymax=up95),width=.1)+
+           theme(axis.text=element_text(face="bold", colour = "black"))+
+           xlab("")+ylab("")+coord_flip())  
+}
+
+
+
+library(gridExtra)
+grid.arrange(g1,g2,g3,g4,g5,g6,nrow=6,ncol=1)
+
+
+
+
+grid.arrange(g1,g10,             g19,nrow=3,ncol=1)
 
 
 
@@ -160,17 +252,21 @@ fun_95percent<-function(x)
 
 # 정상군 95% 구간 구하기 끝 --------------------------------------------------------
 
+mb_tmp_data_tmp1[mb_tmp_data_tmp1$Gender=='male' & mb_tmp_data_tmp1$허리둘레<filter(normal95totalbind,vnames=='허리둘레')$lw95_male,]$허리둘레<-1000001
+head(mb_tmp_data_tmp1)
+
+
 # 변수코딩95%값으로 1또는 0 또는 -1 --------------------------------------------------
 
 
 outofnormalCheck<-function(mb_tmp_data_tmp1,normal95totalbind)
 {
   #mb_tmp_data_tmp1<-mb_tmp_data_tmp2
-  vnames_only<-normal95totalbind$vnames
+  #vnames_only<-normal95totalbind$vnames
   
   for(vnm in vnames_only)
   {
-   # vnm<-"a37"
+    vnm<-"허리둘레"
     
     str1<-"mb_tmp_data_tmp1[mb_tmp_data_tmp1$Gender=='male' & mb_tmp_data_tmp1$vnm<filter(normal95totalbind,vnames=='vnm')$lw95_male,]$vnm<-1000001"
     str2<-"mb_tmp_data_tmp1[mb_tmp_data_tmp1$Gender=='male' & mb_tmp_data_tmp1$vnm>=filter(normal95totalbind,vnames=='vnm')$lw95_male & mb_tmp_data_tmp1$vnm<=filter(normal95totalbind,vnames=='vnm')$up95_male,]$vnm<-1000002"
@@ -260,10 +356,34 @@ outofnormalCheck<-function(mb_tmp_data_tmp1,normal95totalbind)
 # 변수코딩95%값으로 1또는 0 또는 -1 끝 ------------------------------------------------
 
 
+
 mb_tmp_data_tmp2<-mb_tmp_data
+
+ttnn<-names(mb_tmp_data)
+ttnn<-ttnn[15:20]
+
+
+names(mb_tmp_data_tmp2)[15]<-"a1"
+names(mb_tmp_data_tmp2)[16]<-"a2"
+names(mb_tmp_data_tmp2)[17]<-"a3"
+names(mb_tmp_data_tmp2)[18]<-"a4"
+names(mb_tmp_data_tmp2)[19]<-"a5"
+names(mb_tmp_data_tmp2)[20]<-"a6"
+
+
+
+head(mb_tmp_data)
 mb_tmp_data_tmp2<-mb_tmp_data_tmp2[complete.cases(mb_tmp_data_tmp2),]
 summary(mb_tmp_data_tmp2)
 names(mb_tmp_data)
+
+
+#계측.. 한글->영어로
+mb_tmp_data_tmp1<-mb_tmp_data_tmp2
+head(mb_tmp_data_tmp1)
+normal95totalbind$vnames<-c("a1","a2","a3","a4","a5","a6")
+vnames_only<-normal95totalbind$vnames
+
 mb_tmp_data_tmp2_1<-outofnormalCheck(mb_tmp_data_tmp2,normal95totalbind)
 
 summary(mb_tmp_data_tmp2_1)

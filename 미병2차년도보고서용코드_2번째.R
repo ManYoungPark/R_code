@@ -3,6 +3,7 @@ names(mb_tmp_data_tmp2_1)
 mb_tmp_data_tmp2_1
 
 mb_tmp_data_tmp2_2<-select(mb_tmp_data_tmp2_1,matches("a[0-9]"),matches("k[0-9]"),Gender,미병그룹recode)
+mb_tmp_data_tmp2_2<-select(mb_tmp_data_tmp2_1,c(15:20,10,21))
 mb_tmp_data_tmp2_2$Gender<-factor(mb_tmp_data_tmp2_2$Gender)
 
 mb_tmp_data_tmp2_2.male<-filter(mb_tmp_data_tmp2_2,Gender=="male")
@@ -62,6 +63,8 @@ df_sub_fullNm<-sqldf("select * from df_sub_sum a inner join mappingVR b on a.var
 write.csv(df_sub_fullNm,"Mac_outof_95.csv")
 
 write.csv(df_sub_sum,"HRV_outof_95.csv")
+write.csv(df_sub_sum,"Measured_outof_95.csv")
+
 
 #hrv
 
