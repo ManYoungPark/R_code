@@ -24,12 +24,13 @@ conn<-odbcConnect('mibyeong_2016',uid='sa',pwd='leo0515')
 
 mb_tmp_data=sqlQuery(conn,"select * from 인바디분석자료0429")
 mb_tmp_data=sqlQuery(conn,"select * from 계측분석자료_my")
+mb_tmp_data=sqlQuery(conn,"select * from HRV분석자료0429")
+mb_tmp_data=sqlQuery(conn,"select * from 아산병원경희1차_기초대사량비교_최종미병군결측제외$")
 
 setwd("D:/KIOM/프로젝트문서들/미래부_수면박탈_미병/데이터/2016데이터")
 
 names(mb_tmp_data)
 # 데이터가 1/3 이상 없는 데이터 컬럼 제거 ------------------------------------------------
-
 
 
 
@@ -45,24 +46,26 @@ str(mb_tmp_data)
 
 
 
-
 # 건강군 모든 변수 95%구간 구하기. --------------------------------------------------
 
 # 건강군만 추출
 mb_tmp_data.group1<-subset(mb_tmp_data,미병버전==1 & 미병그룹==1)
+mb_tmp_data.group1<-subset(mb_tmp_data, 미병분류==1)
 
 #nms<-names(mb_tmp_data.group1)
 #nms.inbodyVR<-grep("^a",nms,value=TRUE)
 
 names(mb_tmp_data.group1)
 names(tmpdata)
+#기초대사량.
+tmpdata<-mb_tmp_data.group1[,c(5:9,11)]
+
 #inbody
 tmpdata<-mb_tmp_data.group1[,c(14,17:ncol(mb_tmp_data.group1))]
-#계측
 
+#계측
 tmpdata<-mb_tmp_data.group1[,c(10,15:20)]
 names(tmpdata)[1]<-"Gender"
-
 
 #mac
 tmpdata<-select(mb_tmp_data.group1,matches("^a[0-9]+"),Gender)
@@ -88,14 +91,12 @@ names(mb_tmp_data)
 #end of hrv related
 
 
-
 names(tmpdata)
 
 tmpdata$Gender=factor(tmpdata$Gender)
 tmpdata_male<-tmpdata[tmpdata$Gender=='male',]
-tmpdata_male<-tmpdata[tmpdata$Gender=='1',]
 tmpdata_female<-tmpdata[tmpdata$Gender=='female',]
-tmpdata_female<-tmpdata[tmpdata$Gender=='2',]
+
 
 summary(tmpdata)
 summary(tmpdata_male)
@@ -103,6 +104,7 @@ summary(tmpdata_female)
 
 tmpdata1_1<-tmpdata #전체
 tmpdata1_1<-tmpdata_male #man
+
 tmpdata1_1<-tmpdata_female #women
 
 
@@ -146,14 +148,17 @@ write.csv(normal95totalbind_fullNm2,"normal95totalbind_fullNm2.csv")
 write.csv(normal95totalbind_fullNm2,"normal95totalbind_fullNm2Mac.csv")
 write.csv(normal95totalbind_fullNm2,"normal95totalbind_fullNm2HRV.csv")
 write.csv(normal95totalbind,"normal95totalbind_fullNm2계측.csv")
+write.csv(normal95totalbind,"normal95totalbind_fullNm2기초대사량.csv")
 
 inbody95p_range<-normal95totalbind_fullNm2
-
 mac95p_range<-normal95totalbind_fullNm2
 HRV95p_range<-normal95totalbind_fullNm2
 
+
 save(inbody95p_range,file="inbody95p_range.RData")
 save(normal95totalbind,file="계측95p_range.RData")
+save(normal95totalbind,file="기초대사량95p_range.RData")
+
 load(file="inbody95p_range.RData")
 getwd()
 
@@ -208,7 +213,7 @@ for(i in 1:NROW(tmp))
 
 
 library(gridExtra)
-grid.arrange(g1,g2,g3,g4,g5,g6,nrow=6,ncol=1)
+grid.arrange(g1,g2,g3,g4,g5,nrow=5,ncol=1)
 
 
 
@@ -266,7 +271,7 @@ outofnormalCheck<-function(mb_tmp_data_tmp1,normal95totalbind)
   
   for(vnm in vnames_only)
   {
-    vnm<-"허리둘레"
+   # vnm<-"허리둘레"
     
     str1<-"mb_tmp_data_tmp1[mb_tmp_data_tmp1$Gender=='male' & mb_tmp_data_tmp1$vnm<filter(normal95totalbind,vnames=='vnm')$lw95_male,]$vnm<-1000001"
     str2<-"mb_tmp_data_tmp1[mb_tmp_data_tmp1$Gender=='male' & mb_tmp_data_tmp1$vnm>=filter(normal95totalbind,vnames=='vnm')$lw95_male & mb_tmp_data_tmp1$vnm<=filter(normal95totalbind,vnames=='vnm')$up95_male,]$vnm<-1000002"

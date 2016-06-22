@@ -4,6 +4,7 @@ mb_tmp_data_tmp2_1
 
 mb_tmp_data_tmp2_2<-select(mb_tmp_data_tmp2_1,matches("a[0-9]"),matches("k[0-9]"),Gender,미병그룹recode)
 mb_tmp_data_tmp2_2<-select(mb_tmp_data_tmp2_1,c(15:20,10,21))
+mb_tmp_data_tmp2_2<-select(mb_tmp_data_tmp2_1,c(5:9,11,10))
 mb_tmp_data_tmp2_2$Gender<-factor(mb_tmp_data_tmp2_2$Gender)
 
 mb_tmp_data_tmp2_2.male<-filter(mb_tmp_data_tmp2_2,Gender=="male")
