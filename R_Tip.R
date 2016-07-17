@@ -9,7 +9,7 @@ mb_tmp1_1<-mb_tmp_data[,names(mb_tmp_data) %in% colnms]
 names(mb_tmp1_1)[names(mb_tmp1_1) == 'aa_FFM%ofRightArm'] <- 'aa_FFM_per_ofRightArm'
 #rename 도 있을꺼다..
 
-
+dd
 
 ##특정 문자가 들어간 변수명 모두 출력
 grep("TBW",namestmp,value=TRUE)
