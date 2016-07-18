@@ -1,5 +1,5 @@
 
-setwd("D:/KIOM/프로젝트문서들/국민건강영양조사/갤럽_식사끼니에따른삶의질")
+setwd("C:/Users/Administrator/Downloads")
 
 require(xlsx)
 
@@ -11,12 +11,13 @@ df2<-transform(df
                ,d7=factor(d7,levels=c(1:15),labels=c("<49","50-99","100-149","150-199","200-249","250-299"
                                                      ,"300-349","350-399","400-499","500-599","600-699","600-799"
                                                      ,"800-899","900-999",">1000"))
-               ,q65=factor(q65,levels=c(1:3),labels=c("Healthy","Mibyeong","Disease"))
+               #,q65=factor(q65,levels=c(1:3),labels=c("Healthy","Mibyeong","Disease"))
                ,sex=factor(sex,levels=c(1:2),labels=c("Male","Female"))
                ,KS15=factor(KS15,levels=c(1:3),labels=c("Taeyangin","Soeumin","Soyangin"))
-               ,mi_group=factor(mi_group,levels=c(1:3),labels=c("Healthy","Mibyeong1","Mibeyong2")))
+              # ,mi_group=factor(mi_group,levels=c(1:3),labels=c("Healthy","Mibyeong1","Mibeyong2"))
+              )
 
-
+install.packages("dplyr")
 require(dplyr)
 str(df2)
 names(df2)
@@ -24,8 +25,17 @@ names(df2)
 
 
 df3<-select(df2,age,sex,q4_1_1,d7,d2,d4,q27,q42_1,q42_2,q42_3,q65,KS15,mi_score,mi_group)
-#names(df3)<-c("Age","Sex","운동습관","급여","결혼유무","학력","삶의질","아침","점심","저녁","체질","미병점수")
+
 names(df3)<-c("Age","Sex","Exercise","Household_income","Marital_status","Education_level","QOL","Breakfast","Lunch","Dinner","Mibyeong_Check_bySelf","Constitution","Mibyeongscore","MibyeongGroup")
+df3$Mibyeong_Check_bySelf<-df3$Mibyeong_Check_bySelf-1
+df3$MibyeongGroup<-df3$MibyeongGroup-1
+
+df3[df3$Mibyeong_Check_bySelf==3,]$Mibyeong_Check_bySelf<-2
+df3[df3$MibyeongGroup==3,]$MibyeongGroup<-2
+
+
+
+
 
 #다중 회귀분석.
 summary(df3)
@@ -46,17 +56,19 @@ plot(rslt)
 
 df3$flag<-factor(with(df3,ifelse(Breakfast==1 & Lunch==1 & Dinner==1 ,1,ifelse(Breakfast==4 & Lunch==1 & Dinner==1,0,9))))
 summary(df3)   
-     
+
 df4<-transform(df3,flags3=factor(ifelse(Breakfast==1 & Lunch==1 & Dinner==1 ,1,ifelse(Breakfast==4 & Lunch==1 & Dinner==1,0,9))))
 summary(df4)
-                
+
 df3_1<-filter(df3,flag==1 | flag==0)
 
 df3_1$flag<-droplevels(df3_1$flag)
+levels(df3_1$Mibyeong_Check_bySelf)
 summary(df3_1)
 
 
 write.csv(df3_1,"breakfast.csv")
+install.packages("MatchIt")
 require(MatchIt)
 
 m.out <-matchit(formula = flag ~ Age+Sex+Exercise+Marital_status+ Education_level+Constitution ,ratio=1, data = df3_1, method = "nearest")
@@ -74,5 +86,39 @@ xtabs(~matched$Education_level+matched$flag)
 t.test(matched$QOL~matched$flag)
 t.test(matched$Mibyeongscore~matched$flag)
 
+t.test(df3_1$QOL~df3_1$flag)
+t.test(df3_1$Mibyeongscore~df3_1$flag)
+
 names(matched)
 
+df3_1_Taeyangin<-filter(df3_1,Constitution=="Taeyangin")
+df3_1_Soeumin<-filter(df3_1,Constitution=="Soeumin")
+df3_1_Soyangin<-filter(df3_1,Constitution=="Soyangin")
+
+names(df3_1_Taeyangin)[11]<-"Mibyeong_Check_bySelf_Taeyangin"
+names(df3_1_Soeumin)[11]<-"Mibyeong_Check_bySelf_Soeumin"
+names(df3_1_Soyangin)[11]<-"Mibyeong_Check_bySelf_Soyangin"
+#roc
+install.packages("Epi")
+install.packages("pROC")
+install.packages("ztable")
+install.packages("moonBook")
+require(Epi)
+require(pROC)
+require(ztable)
+require(moonBook)
+source("ROC_sub.R")
+
+head(df3_1_Taeyangin)
+a1=ROC(form=Mibyeong_Check_bySelf_Taeyangin~Mibyeongscore,data=df3_1_Taeyangin,plot="ROC")
+a2=ROC(form=Mibyeong_Check_bySelf_Soeumin~Mibyeongscore,data=df3_1_Soeumin,plot="ROC")
+a3=ROC(form=Mibyeong_Check_bySelf_Soyangin~Mibyeongscore,data=df3_1_Soyangin,plot="ROC")
+a4=ROC(form=Mibyeong_Check_bySelf~Mibyeongscore,data=df3_1,plot="ROC")
+a1=ROC(form=male~height,data=radial,plot="ROC")
+  
+
+summary(df3_1_Soeumin)
+df3_1_Soeumin$Mibyeong_Check_bySelf <-factor(df3_1_Soeumin$Mibyeong_Check_bySelf)
+head(radial)
+plot_ROC(a1,a2,a3,show.sens=TRUE)
+plot_ROC(a4,show.sens=TRUE)
