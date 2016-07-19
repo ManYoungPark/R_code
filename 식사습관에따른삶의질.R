@@ -1,5 +1,5 @@
 
-setwd("C:/Users/Administrator/Downloads")
+setwd("D:/KIOM/프로젝트문서들/국민건강영양조사/갤럽_식사끼니에따른삶의질")
 
 require(xlsx)
 
@@ -21,6 +21,7 @@ install.packages("dplyr")
 require(dplyr)
 str(df2)
 names(df2)
+
 
 
 
@@ -71,14 +72,17 @@ write.csv(df3_1,"breakfast.csv")
 install.packages("MatchIt")
 require(MatchIt)
 
-m.out <-matchit(formula = flag ~ Age+Sex+Exercise+Marital_status+ Education_level+Constitution ,ratio=1, data = df3_1, method = "nearest")
+m.out <-matchit(formula = flag ~ Sex+Exercise+ Education_level+Constitution ,ratio=1, data = df3_1, method = "nearest")
 m.out <-matchit(formula = flag ~ Age+Sex+Exercise+Marital_status+ Education_level+Constitution ,ratio=1, data = df3_1, method = "exact")
 
 
-names(df3_1)
 matched <-match.data(m.out)
+
+write.csv(matched,"matched_QOL_exact.csv")
 chisq.test(matched$flag,matched$Marital_status)
 chisq.test(matched$flag,matched$Education_level)
+chisq.test(matched$flag,matched$Exercise)
+chisq.test(matched$flag,matched$Constitution)
 
 xtabs(~df3_1$Marital_status+df3_1$flag)
 xtabs(~matched$Education_level+matched$flag)
@@ -90,6 +94,11 @@ t.test(df3_1$QOL~df3_1$flag)
 t.test(df3_1$Mibyeongscore~df3_1$flag)
 
 names(matched)
+
+resultfinal<-glm(Mibyeong_Check_bySelf~Age+Sex+Exercise+Marital_status+ Education_level+Constitution,data=matched,family=binomial)
+summary(resultfinal)
+exp(coef(resultfinal))
+exp(confint(resultfinal))
 
 df3_1_Taeyangin<-filter(df3_1,Constitution=="Taeyangin")
 df3_1_Soeumin<-filter(df3_1,Constitution=="Soeumin")
@@ -114,11 +123,38 @@ a1=ROC(form=Mibyeong_Check_bySelf_Taeyangin~Mibyeongscore,data=df3_1_Taeyangin,p
 a2=ROC(form=Mibyeong_Check_bySelf_Soeumin~Mibyeongscore,data=df3_1_Soeumin,plot="ROC")
 a3=ROC(form=Mibyeong_Check_bySelf_Soyangin~Mibyeongscore,data=df3_1_Soyangin,plot="ROC")
 a4=ROC(form=Mibyeong_Check_bySelf~Mibyeongscore,data=df3_1,plot="ROC")
-a1=ROC(form=male~height,data=radial,plot="ROC")
-  
+
+a2=ROC(form=MibyeongGroup~QOL,data=df3_1,plot="ROC") #QOL 76이 best cut point임.
+a1=ROC(form=Mibyeong_Check_bySelf~QOL,data=df3_1,plot="ROC")
+
+head(df3_1)  
 
 summary(df3_1_Soeumin)
 df3_1_Soeumin$Mibyeong_Check_bySelf <-factor(df3_1_Soeumin$Mibyeong_Check_bySelf)
 head(radial)
 plot_ROC(a1,a2,a3,show.sens=TRUE)
-plot_ROC(a4,show.sens=TRUE)
+plot_ROC(a1,a2,show.sens=TRUE)
+
+summary(df3_1)
+result=step_ROC(Mibyeong_Check_bySelf~Mibyeongscore+Age,data=df3_1,plot=FALSE)
+result=step_ROC(male~height+weight+TC,data=radial,plot=FALSE)
+summary(radial)
+plot_ROC(result$initial,result$final,show.lr.eta=FALSE,show.sens=TRUE,type=1)
+
+
+
+
+#QOL best cut point=76를 이용하여, 76이상이면, 삶의질이 좋다. 76이하이면 삶의질이 떨어진다.
+#logistic 을 수행.
+
+df3_1$QOL_flag<-with(df3_1,ifelse(QOL<76,1,0)) #76이하면 삶의질이 안좋으니깐, 1로 코딩.
+#설명변수 
+
+head(df3_1)
+
+summary(df3_1)
+
+rslt<-glm(QOL_flag~Age+Sex+flag,data=df3_1,family = binomial)
+summary(rslt)
+
+write.csv(df3_1,"QOL_flag.csv")
