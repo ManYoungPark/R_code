@@ -75,6 +75,8 @@ varName<-names(tmpdata)[1:15]
 tmpName<-paste0("k",rep(1:15))
 variable_mapping<-data.frame(fullName=varName,shortName=tmpName)
 
+summary(tmpdata)
+
 for(i in 1:15)
 {
   names(tmpdata)[i]<-tmpName[i]
@@ -124,7 +126,7 @@ names(normal95totalbind)
 head(normal95totalbind)
 
 
-
+normal95total
 
 library(sqldf)
 
