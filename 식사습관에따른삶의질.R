@@ -1,6 +1,6 @@
 
 setwd("D:/KIOM/프로젝트문서들/국민건강영양조사/갤럽_식사끼니에따른삶의질")
-.
+..
 require(xlsx)
 
 df<-read.csv("gallup_alls.csv")
