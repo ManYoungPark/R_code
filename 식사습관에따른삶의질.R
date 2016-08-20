@@ -5,6 +5,7 @@ require(xlsx)
 
 df<-read.csv("gallup_alls.csv")
 
+
 df[is.na(df$q2),]$q2<-0
 
 summary(df$q65)
@@ -40,6 +41,7 @@ names(df2)
 
 
 df3<-select(df2,age,sex,q2,q3,q4,q4_1_1,q6,d7,d2,d4,q42_1,q42_2,q42_3,q65,q14_1_cnts,KS15,mi_score,mi_group,q27)
+
 
 summary(df3)
 names(df3)<-c("Age","Sex","Smoking","Alcohol_consumption","Having_physical_excercise","Exercise_hour_a_day","Having_physical_excercise_hardly",
