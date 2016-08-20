@@ -22,12 +22,20 @@ library(ggplot2)
 
 conn<-odbcConnect('mibyeong_2016',uid='sa',pwd='leo0515')
 
-mb_tmp_data=sqlQuery(conn,"select * from 인바디분석자료0429")
-mb_tmp_data=sqlQuery(conn,"select * from 계측분석자료_my")
-mb_tmp_data=sqlQuery(conn,"select * from HRV분석자료0429")
-mb_tmp_data=sqlQuery(conn,"select * from 아산병원경희1차_기초대사량비교_최종미병군결측제외$")
+mb_tmp_data_in=sqlQuery(conn,"select * from 인바디분석자료0429")
+mb_tmp_data_kye=sqlQuery(conn,"select * from 계측분석자료_my")
+mb_tmp_data_hrv=sqlQuery(conn,"select * from HRV분석자료0429")
+mb_tmp_data_ah=sqlQuery(conn,"select * from 아산병원경희1차_기초대사량비교_최종미병군결측제외$")
 
 setwd("D:/KIOM/프로젝트문서들/미래부_수면박탈_미병/데이터/2016데이터")
+save(mb_tmp_data_in,file="mb_tmp_data_in.RData")
+save(mb_tmp_data_kye,file="mb_tmp_data_kye.RData")
+save(mb_tmp_data_hrv,file="mb_tmp_data_hrv.RData")
+save(mb_tmp_data_ah,file="mb_tmp_data_ah.RData")
+
+
+
+
 
 names(mb_tmp_data)
 # 데이터가 1/3 이상 없는 데이터 컬럼 제거 ------------------------------------------------
